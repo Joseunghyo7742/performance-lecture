@@ -102,3 +102,33 @@ bb# 1장 블로그 서비스 최적화
    - Event log: 발생한 이빈트를 보여줌. Loading, Experience Scripting, Rendering, Painting
   
 > 빨간 막대로 표시된 부분의 Main과 Timings를 확인하여 어디서 병목이 발생하는지 확인한다. 하단으로 내려가면 어떤 작업이 오래걸리는지 디테일하게 확인이 가능하고, 그 부분에서 성능적으로 개선할 수 있는 점을 찾는다.
+
+
+### 코드분할& 지연로딩
+> 화면을 그리는데 필요한 리액트 코드 다운이 늦어지면 페인트 시간이 늦어진다. 웹팩을 통해 번들링된 파일을 분석하고 최적화하여 자바스크립트 파일이 빨리 뜰 수 있도록 해보자
+
+- Webpack Bundle Analyzer라는 툴을 이용해 청크 파일 구성을 상세히 보자.
+- CRA의 경우 npm run eject로 설정 파일 추출 후 웹팩 설정을 만져야 하는데 까다로움
+- 따라서 `cra-bundle-analyzer` 를 사용함. CRA에서 eject없이 `webpack-bundle-analyzer` 사용을 가능하게 함
+- `npm install --save-dev cra-bundle-analyzer`
+- `npx cra-bundle-analyzer` 
+- build 폴더 안에 report.html을 열어준다.
+- 파일의 실제 크기에 따라 비율로 보여줌, 어떤 패키지가 어느 정도의 용량을 차지하는지 알 수 있다.
+- ![alt text](image-7.png)
+- ![alt text](image-8.png)
+  - `chunck.js` 가 가장 큰 부분을 차지하고 있다. 하위 모듈이 node_modules로 npm을 통해 설치된 외부 라이브러리임.
+  - `main.chunck.js` 는 서비스에서 작성된 코드
+
+__코드분할 해보기__
+![alt text](image-9.png)
+
+- 사진처럼 `package-lock.json`을 보면 패키지에 대한 의존성을 가진 패키지 확인을 할 수 있다.
+- `npm install`을 하면 이 `package-lock.json` 을 참조해 설치하고자 하는 패키지가 어떤 버전의 패키지에 의존하는 지 확인해 함께 설치한다.
+- `refractor`는 `react-syntax-highlighter` 패키지에 참조되는데 이는 마크다운 코드 블록 스타일을 입히는데 사용되는 라이브러리다
+- 이는 블로그 상세페이지에서만 쓰이는 라이브러리로 첫 렌더링 때 필요없는 요소다.
+  
+> __코드분할__ 이란? 하나의 번들 파일을 여러 개의 파일로 쪼개는 방법으로 쪼개진 코드는 사용자가 해당 코드가 필요할 때 로드되어 실행되게 한다. 이를 지연 로딩이라 한다.
+
+- 코드 분할 기법에는 여러 패턴이 있다. *페이지 별 코드 분할*, 각 페이지가 공통으로 쓰는 모듈이 많고 그 사이즈가 크다면 *모듈별로 분할*하기도 한다.
+  
+  
