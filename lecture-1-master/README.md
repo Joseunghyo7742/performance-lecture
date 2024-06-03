@@ -1,48 +1,50 @@
-## Lecture-1
+# 1장 블로그 서비스 최적화
 
-'프론트엔드 개발자를 위한, 실전 웹 성능 최적화(feat. React) - Part. 1' 1번째 강의 소스입니다.
+### 이 장에서 최적화 기법
+- 이미지 사이즈 최적화
+  > 이미지를 적정한 사이즈로 사용해야 한다. 너무 작으면 화질 저하, 너무 크면 네트워크 트래픽의 증가로 로딩속도가 느려짐. 
+- 코드 분할
+  > SPA의 특성상 모든 리액트 코드는 하나의 js로 번들링 되므로 쓰지 않는 코드도 첫 로딩 시에 포함되어 무거워짐. 따라서 당장 필요없는 코드는 스플리팅하여 필요 시점에 쓰도록 분할. 
+- 텍스트 압축
+  > 웹페이지 접속 시 다양한 리소스(HTML, CSS, js 등)을 받는데 서버에서 미리 압축이 가능함. 압축 시 본 사이즈보다 작은 사이즈로 다운로드 할 수 있어서 웹페이지 로드가 빨라짐.
+- 병목 코드 최적화 
+  > 특정 js 코드 때문에 서비스가 느리게 다운되거나 실행되는 경우가 있음. 이런 현상을 만드는 코드를 '병목 코드' 라고 함. 이 병목코드를 최적화 해보자.
 
-### 실행
+### 예제 프로젝트 안 열리는 오류
+> `npm run start` 해보았으나 열리지 않음
+-  node 버전 호환 문제로 node 16버전으로 다운그레이드 해주어야 함.
+-  `nvm` 을 사용하여 노드버전을 변경 해주었다. 
+    > `nvm` 은 node version manager로 node.js의 도구다. 개발환경에 여러 개의 node 버전을 설치해 상황에 따라 node.js 버전을 변경해가며 사용 할 수 있게 해준다.
+- nvm 사용방법
+  - nvm 설치 : https://github.com/coreybutler/nvm-windows/releases 에서 `nvm-setup-zip` 다운 
+  - `nvm install 16` 으로 node 버전 설치
+  - `nvm ls` 로 사용 가능 버전 확인
+  - `nvm use 16` 으로 버전 체인지
+  - `node -v` 으로 16버전인지 확인
 
-1. download sources
+### Lighthouse 검사
+- Mode
+  - `Navigation` 기본 값으로, 초기 페이지 로딩 시 발생하는 성능 문제를 분석
+  - `Timespan` 사용자가 정의한 시간 동안 발생한 성능 문제를 분석
+  - `Snapshot` 현재 상태의 성능 문제를 분석
+- Categories
+  - `Performance`: 웹페이지의 로딩 과정에서 발생하는 성능 문제를 분석
+  - `Accessibility`: 서비스의 사용자 접근성 문제를 분석
+  - `Best Practices`: 웹사이트의 보안 측면과 웹 개발의 최신 표준에 중점을 두고 분석
+  - `SEO`: 검색 엔진에서 얼마나 잘 크롤링되고 검색 결과에 표시되는지 분석
+  - `Progressive Web App`: 서비스워커와 오프라인 동작 등, PWA와 관련된 문제를 분석. 
 
-```
-$ git clone https://github.com/performance-lecture/lecture-1.git
-```
-
-2. install dependencies
-
-```
-$ npm install
-or
-$ yarn
-```
-
-3. start development server
-
-```
-$ npm run start
-or
-$ yarn start
-```
-
-4. start json-server
-
-```
-$ npm run server
-or
-$ yarn server
-```
-*3번의 dev server 와 다른 콘솔에서 띄워줍니다.
-
-5. build + serve
-
-```
-$ npm run serve
-or
-$ yarn serve
-```
-
-### 질문
-
-궁금하신 부분은 강의 내 질문 & 답변 게시판 또는 해당 레포지토리의 Issues를 이용해주시기 바랍니다.
+### 웹 바이탈 분석
+![alt text](image.png)
+1. First Contentful Paint
+   > 페이지가 로드될 때 브라우저가 DOM 콘텐츠의 첫 번째 부분을 렌더링하는 데 걸리는 시간. 총점의 10% 가중치를 가짐.
+2. Largest Contentful Paint
+   > 페이지가 로드될 때 화면 내에 있는 가장 큰 이미지나 텍스트 요소가 렌더링되기까지 걸린 시간. 가중치 25%를 가짐.
+3. Total Blocking Time
+   > 페이지가 클릭, 입력 등 사용자와 상호작용에 응답하지 않도록 차단된 시간의 총합. 이는 FCP와 TTI 사이 시간 동안 일어남. 메인 스레들르 독점해 다른 동작을 방해하는 작업에 걸린 시간을 총합. 가중치 30% 
+4. Cumulative Layout Shift
+   > 페이지 로드 과정에서 발생하는 예기치 못한 레이아웃 이동을 측정. 레이아웃 이동은 화면 상에서 요소의 위치나 크기가 순간적으로 변하는 것. 15% 가중치.   
+5. Speed Index 
+   > 페이지 로드 중 콘텐츠가 시각적으로 표시되는 속도. (skeleton을 적용하면 더 높은 점수 일 수 있다.) 가중치 10%
+6. Time to Interactive
+   > 사용자가 페이지와 상호 작용(클릭, 입력)이 가능한 시점까지 걸리는 시간. 10% 가중치 
