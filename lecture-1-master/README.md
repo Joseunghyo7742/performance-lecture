@@ -131,4 +131,33 @@ __코드분할 해보기__
 
 - 코드 분할 기법에는 여러 패턴이 있다. *페이지 별 코드 분할*, 각 페이지가 공통으로 쓰는 모듈이 많고 그 사이즈가 크다면 *모듈별로 분할*하기도 한다.
   
-  
+- 동적 import를 활용해 해당 모듈을 런타임에 로드하도록 하기 
+- webpack은 동적import 구문을 만나면 코드를 분할하여 번들링한다. 
+- 문제는 Promise형태로 모듈을 반환하므로 Promise 내부에 로드된 컴포넌트를 promise 밖으로 꺼내줘야 한다.
+- 이를 리액트에서 제공하는 `lazy`와 `Suspense`로 해결할 수 있다.
+- lazy는 동적 import를 호출해 그 결과인 Promise를 반환하는 함수를 인자로 받는다.
+- Suspense는 동적 import하는 동안 fallback prop에 정의된 내용을 렌더링하고, 이후 컴포넌트가 온전히 로드되면 렌더링시킨다. 
+
+```javascript
+import React, {Suspense} from 'react'
+
+const SomeComponenet = React.lazy(()=> import('./SomeComponent'))
+function MyComponent(){
+    return(
+      <div>
+        <Suspense fallback={<div>loading</div>}>
+          </SomeComponent>
+        </Suspense>
+      </>
+    )
+}
+```
+
+분할 결과 
+![alt text](image-10.png)
+- 0.chunk.js: ListPage에서 사용하는 외부 패키지를 모아둔 번들
+- 3.chunck.js: ViewPage에서 사용하는 외부 패키지를 모아둔 번들
+- 4.chunck.js: 리액트 공통 패키지를 모아 둔 번들 
+- 5.chunck.js: ListPage 컴포넌트 번들 파일
+- 6.chunck.js: ViewPage 컴포넌트 번들 파일 
+
