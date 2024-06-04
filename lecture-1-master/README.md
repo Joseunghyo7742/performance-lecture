@@ -161,3 +161,53 @@ function MyComponent(){
 - 5.chunck.js: ListPage 컴포넌트 번들 파일
 - 6.chunck.js: ViewPage 컴포넌트 번들 파일 
 
+
+### 텍스트 압축
+> cra는 production환경과 development환경에 차이가 있다. 예를 들어, production 환경일 때는 webpack에서 경량화나 난독화 같은 추가적인 최적화 작업을 한다. 반면 development환경엔 그런 최적화 작업 없이 서비스를 실행한다. 즉, 최종 서비스의 성능을 측정할 때는 실제 제공되는 `production` 환경으로 빌드된 서비스의 성능을 측정해야한다. 
+
+- `npm run serve` 를 통해 빌드 > 빌드 완료 시 serve 라이브러리를 통해 build 폴더 안 파일을 서비스함 
+- development환경과 다른 점은 빌드 시 경량화 같은 최적화 작업으로 chunck 파일이 더 작다.
+
+현재 상세페이지를 lighthouse로 돌리면 점수가 낮게 나온다. 
+![alt text](image-12.png)  
+
+왜냐하면 분할했던 패키지가 번들 파일에 포함되어 있고 블로그 글 내용이 모두 들어있어 메인페이지에 낮을 수 있다.
+  
+
+![alt text](image-11.png)
+- Enable text compression: 서버로부터 리소스를 받을 때, 텍스트를 압축해 받아라. 
+- Html, css, javascript 같은 텍스트 형태의 파일을 압축해 더 작은 크기로 빠르게 전송함
+- 압축 파일은 사용하는 시점에 압축을 해제함.
+- 텍스트 압축 여부는 HTTP 헤더를 확인하면 된다.
+  ![alt text](image-13.png)
+  
+</br>
+
+🚩HTTP에서의 압축(https://developer.mozilla.org/ko/docs/Web/HTTP/Compression)
+> Compression is an important way to increase the performance of a website. For some documents, size reduction of up to 70% lowers the bandwidth capacity needs.
+
+  압축은 3가지 단계에서 진행된다.
+  1. 파일 형식 압축
+   - `Lossy Compression(손실압축)`: 데이터 복구 시 일부 손실될 수 있으나 사용자에게 거의 느껴지지 않는다. 예: JPEG이미지, 웹 비디오 포맷
+  - `Loss-less Compression(무손실 압축)`: 데이터를 복구할 때 원본 데이터가 그대로 유지된다. 예: GIF, PNG이미지
+  2. 종단 간 압축
+   - 서버에서 클라이언트로 전송되는 HTTP 메시지 본문을 압축해 전송
+   - 브라우저와 서버는 `Accept-Encoding` 헤더를 통해 사용할 압축 알고리즘을 정함. 가장 일반적으로 사용되는 알고리즘은 `gzip`과 `br`
+   - 모든 최신 브라우저와 서버는 이를 지원하며, 압축된 파일은 `Content-Encoding` 헤더를 통해 표시됨
+    ![alt text](image-14.png)
+    ![alt text](image-15.png)
+  3. Hop-by-Hop 압축
+   - 클라이언트와 서버 간의 중간 노드 간에 데이터를 압축
+   - `Transfer-Encoding` 헤더를 사용해 노드 간 전송 시 압축을 지정함. 이 방식은 드물게 사용됨 
+   - 성능 향상을 위해 활성화하는 것이 좋으며, 이미 압축된 파일(이미지, 오디오, 비디오 등)에는 적용하지 않는다. 
+    ![alt text](image-16.png)
+  
+
+### 텍스트 압축 적용
+텍스트 압축은 이 리소스를 제공하는 서버에서 설정해야 한다. 이 서비스의 서버는 `serve` 라이브러리로 `package.json`을 확인하면 script에 다음과 같이 작성되어 있다.
+
+`"serve": "npm run build && node ./node_modules/serve/bin/serve.js -u -s build",` 
+- `npx serve --help`를 처보면 serve의 옵션에 대한 설명이 나온다.
+- -u 옵션은 no-compression, -s옵션은 SPA 서비스를 위해 매칭되지 않는 주소는 모두 index.html로 보내겠다는 옵션.
+- 따라서 -u 옵션을 제거해준다.
+- 실제 서버에 적용하려면 직접 텍스트 압축 설정을 해야 한다. 단일 서버가 아닌 여러 서버를 사용한다면 Nginx같은 게이트웨이 서버에 공통적으로 텍스트 압축을 적용할 수 있다.
